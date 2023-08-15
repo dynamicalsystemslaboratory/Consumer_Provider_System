@@ -9,4 +9,4 @@ reviews, and types of health insurance accepted. The data on online ratings and 
 
 3-"genralized_model_ER_N100.py" is a script that provides an example of how we performed the model on Erdős-Rényi network with 100 nodes.
 
-4-"doctor_network_radius.py" is a script that provides an example of how we performed the model on doctor network in which the accessibility is determined by the distance threshold.
+4-"doctor_network_radius.py" is a script that provides an example of how we performed the model on doctor network in which the PCPs' accessibility is determined by distance threshold.
