@@ -50,11 +50,24 @@ def trustworthiness(Ti,Si):
     return tau
 
 def sig(x,Fii):
+    """sigmoid function of the probability that consumers is dissatisfied with the current provider"""
     return Fii/(1+np.exp(-0.08*(x-50)))
     # return 0.5/(1+np.exp(-0.08*(x-50)))*np.random.uniform(0, 0.5)
 
-def prob_choose(Ti,Si,Tj,Sj): ### probability that consumers who have access to P_i and P_j select P_i from both 
-    rho_i = trustworthiness(Ti,Si) #Ti: number of textual reviews; Si: satisfaction rate 
+def prob_choose(Ti,Si,Tj,Sj): 
+    """ probability that consumers who have access to P_i and P_j select P_i from both
+    Parameters
+    ----------
+    Ti : number of textual reviews of P_i
+      
+    Si: online satisfaction rate of P_i
+
+    Returns
+    -------
+    choose_i: probability to choose P_i by comparing P_i and P_j
+    
+    """ 
+    rho_i = trustworthiness(Ti,Si) 
     rho_j = trustworthiness(Tj,Sj)
     rS_i = rho_i*Si+random.uniform(-0.5,0.5)
     rS_j = rho_j*Sj+random.uniform(-0.5,0.5)
@@ -147,6 +160,7 @@ def haversine_km(coord1, coord2):
 
 
 def nsmallest(m):
+    """find the closest five locations"""
     min_number = heapq.nsmallest(5, m) 
     min_index = []
     for t in min_number:
@@ -176,29 +190,6 @@ def EuclideanDistance(x,y):
     distance = math.sqrt((x[0]-y[0])**2+(x[1]-y[1])**2)
     return distance
 
-## version 3, each patient can only move 2 times
-def version_3(G, M):
-  random.seed(100)
-  # pa_doc = {x: [] for x in range(M)}
-  for i in range(len(pa_doc)):
-    start_node = random.sample(list(G.nodes), 1)[0]
-    pa_doc[i] = [start_node]
-    move_times = 0
-
-    for j in G.neighbors(start_node):
-      if (random.uniform(0, 1) > 0.8):
-        all_true = True
-        v = pa_doc[i][len(pa_doc[i])-1]
-        if j in G.neighbors(v):
-          pa_doc[i].append(j)
-          move_times += 1
-          if move_times == 1:
-            break
-
-  # doc_pa = {x: [] for x in G.nodes}
-  for key, values in pa_doc.items():
-    for v in values:
-      doc_pa[v].append(key)
 
 def find_element_range(rv,V):
     P = 0
