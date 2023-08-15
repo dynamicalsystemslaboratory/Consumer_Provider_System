@@ -50,11 +50,24 @@ def trustworthiness(Ti,Si):
     return tau
 
 def sig(x,Fii):
+    """sigmoid function of the probability that consumers is dissatisfied with the current provider"""
     return Fii/(1+np.exp(-0.08*(x-50)))
     # return 0.5/(1+np.exp(-0.08*(x-50)))*np.random.uniform(0, 0.5)
 
-def prob_choose(Ti,Si,Tj,Sj): ### probability that consumers who have access to P_i and P_j select P_i from both 
-    rho_i = trustworthiness(Ti,Si) #Ti: number of textual reviews; Si: satisfaction rate 
+def prob_choose(Ti,Si,Tj,Sj): 
+    """ probability that consumers who have access to P_i and P_j select P_i from both
+    Parameters
+    ----------
+    Ti : number of textual reviews of P_i
+      
+    Si: online satisfaction rate of P_i
+
+    Returns
+    -------
+    choose_i: probability to choose P_i by comparing P_i and P_j
+    
+    """ 
+    rho_i = trustworthiness(Ti,Si) 
     rho_j = trustworthiness(Tj,Sj)
     rS_i = rho_i*Si+random.uniform(-0.5,0.5)
     rS_j = rho_j*Sj+random.uniform(-0.5,0.5)
@@ -147,6 +160,11 @@ def haversine_km(coord1, coord2):
 
 
 def nsmallest(m):
+    """find the closest five locations
+    Parameters
+    ----------
+    m : a list of geographic coordinates
+    """
     min_number = heapq.nsmallest(5, m) 
     min_index = []
     for t in min_number:
@@ -176,29 +194,6 @@ def EuclideanDistance(x,y):
     distance = math.sqrt((x[0]-y[0])**2+(x[1]-y[1])**2)
     return distance
 
-## version 3, each patient can only move 2 times
-def version_3(G, M):
-  random.seed(100)
-  # pa_doc = {x: [] for x in range(M)}
-  for i in range(len(pa_doc)):
-    start_node = random.sample(list(G.nodes), 1)[0]
-    pa_doc[i] = [start_node]
-    move_times = 0
-
-    for j in G.neighbors(start_node):
-      if (random.uniform(0, 1) > 0.8):
-        all_true = True
-        v = pa_doc[i][len(pa_doc[i])-1]
-        if j in G.neighbors(v):
-          pa_doc[i].append(j)
-          move_times += 1
-          if move_times == 1:
-            break
-
-  # doc_pa = {x: [] for x in G.nodes}
-  for key, values in pa_doc.items():
-    for v in values:
-      doc_pa[v].append(key)
 
 def find_element_range(rv,V):
     P = 0
@@ -227,7 +222,7 @@ PorN = 4 ### above 3: positive; below and equal to 3: negative
 V = 3000
 f = 1
 T = 2000
-N = 100
+N = 100 
 M = 5000
 #DD = [1.98, 3.92, 5.82, 7.68, 9.5, 11.28, 13.02, 14.72, 16.38, 18.0]
 DD = range(1,11)
@@ -265,15 +260,7 @@ for n in range(len(DD)):
     G = nx.barabasi_albert_graph(N,dd)
     # G = nx.erdos_renyi_graph(N,dd/N)
     doc_pa = {x: [] for x in G.nodes}
-    pa_doc = {x: [] for x in range(M)}
-    # G = nx.erdos_renyi_graph(N,dd/N)
-    
-    # G = nx.newman_watts_strogatz_graph(N,5,dd)
-    # cluster[n] = nx.average_clustering(G)
-    # assort[n] = nx.degree_assortativity_coefficient(G)
-    # N_pa = 100
-
-    
+    pa_doc = {x: [] for x in range(M)}    
     
     # random.seed(100)
     for i in range(len(pa_doc)):
@@ -367,8 +354,6 @@ for n in range(len(DD)):
         for p_d in range(len(pa_doc[p])): ## p_d: number of accessible doctors (1 or 2) for patient (p)
             ind = pa_doc[p][p_d]
             ind_doc.append(ind)
-            # T_all.append(Text_Num[0,ind]) ## number of textual reviews of accessible doctors
-            # S_all.append(overall_rate[0,ind])
             
         if len(ind_doc) == 1 :
             choice_doc = ind_doc[0] ##  only choice of one doctor
@@ -385,10 +370,12 @@ for n in range(len(DD)):
             Tj,Sj = Text_Num[0,ind_doc[1]],overall_rate[0,ind_doc[1]]
             choose_Pi = prob_choose(Ti,Si,Tj,Sj) 
             choose_Pj = prob_choose(Tj,Sj,Ti,Si)
-            # print(choose_Pi+choose_Pj)
+
             choose_doctor.append(choose_Pi)
             choose_doctor.append(choose_Pj)
+
             ####### Inverse Transform Sampling Method ##########
+
             cdf = np.cumsum(choose_doctor)
             a_rnd = np.random.uniform(size=1)[0]
             c = 0
@@ -412,13 +399,10 @@ for n in range(len(DD)):
     Patient_Num_ALL[n,0,:] = Patient_Num[0,:]
     Patient_Satisfaction_ALL[n,0,:] = overall_rate[0,:]
     
-    t = 0
-    a1 = 0.2
-    a2 = 0.05
+    t = 0 ## time initialize 
+    a1 = 0.2 ## stay
+    a2 = 0.05 ## leave
     beta = 0.5
-    # a1 = 0.2 ## stay
-    # a2 = 0.05 ## leave
-    # beta = 0.5
 
     dis = np.vectorize(sig)
     trust = np.vectorize(trustworthiness)
@@ -442,7 +426,7 @@ for n in range(len(DD)):
 
     while t < T:
         print(n,t)
-        # Aij = np.ones((N,N),dtype=int)
+
         dissatisfy[t] = dis(Patient_Num[t],Fii/M) + np.array(L_inverse) ### probability of dissatisfaction
         dissatisfy[dissatisfy>1] = 1
         Quality_Service_ALL[n,t] = 1 - dissatisfy[t] ## quality of service Q
@@ -456,18 +440,11 @@ for n in range(len(DD)):
             for j in range(N):
                 if i != j: ### specially, H[i][i] means patients who are not dissatisfied with i but still stay with i
                     H[i][j] = leaving_i[i][j]*sigma[j][i] 
-                    # if H[i][j]==0:
-                    #     print(leaving_i[i][j],sigma[j][i] )
+
         G = nx.DiGraph(H)
         plt.plot(nx.in_degree_centrality(G).values())
         plt.plot(nx.out_degree_centrality(G).values())
         num_leave_doc = np.array([sum(H[i]) for i in range(N)]) ### num_leave_doc[i]: number of patients leave from i 
-        # Weighted_Adjacency_Matrix[t,:,:] = H     #### weighted Aij at time t 
-    
-        # G_varying = nx.DiGraph(np.matrix(Aij))
-        # Degree_Nodes_ALL[n,t,:] = np.sum(Aij,axis=1)
-        # Degrees_Graph[n,t,:] = np.array([val for (node,val) in G_varying.degree()])
-        # Cluster_Coeff_Nodes_ALL[n,t,:] = np.array([val for val in nx.clustering(G_varying).values()])
 
         ################# update Rij: residual capacity ######################    
     
@@ -479,17 +456,10 @@ for n in range(len(DD)):
         ############### update number of patients, positive reviews, total reviews, textual reviews, satisfaction rates   ###################
         leaving = np.array([sum(flux_ij[i]) for i in range(N)])
         incoming = np.array([sum(flux_ji[i]) for i in range(N)])
-        # for i in range(N):
-        # print(num_leave_doc-leaving)
         
         In_Degree_ALL[n,t] = incoming
         Out_Degree_ALL[n,t] = leaving
         Patient_Num[t+1] = Patient_Num[t] - leaving + incoming
-        # print(incoming-leaving)
-        # for p in range(N):
-        #     print(Patient_Num[t+1,p]-Fii_hat[p],sum(Rij[p]))
-        #     if Patient_Num[t+1,p] < Fii_hat[p]:
-        #         print("wrong")
 
         Patient_Num_ALL[n,t+1] = Patient_Num[t+1]
         not_stay = dis(Patient_Num[t+1],Fii/M) + L_inverse
